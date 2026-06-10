@@ -28,6 +28,8 @@ The developer wants you to keep going autonomously. They might say:
 
 Work through the plan on your own. After each logical chunk of work (2-4 related tasks), pause and present a summary of what you did plus the UI picker with 4 suggestions for the next chunk of work. The developer can type "approve" to commit and keep going, "stop" to pause agent mode, or pick a suggestion to redirect.
 
+Agent Mode pairs naturally with an active `/goal`: if you end a turn prematurely, the goal evaluator restarts you with feedback until the feature's definition of done is met. Don't fight it — when the goal re-prompts you, treat its feedback as the next chunk of work. Chunk-boundary pauses are still required: keep pausing with the picker as usual; the goal governs *stopping*, not pausing for the developer's input.
+
 **Never enter Agent Mode on your own.** Only the developer activates it.
 
 ## Ask Mode

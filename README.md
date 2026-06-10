@@ -1,3 +1,0 @@
-```
-/vibe {your entire project}
-```

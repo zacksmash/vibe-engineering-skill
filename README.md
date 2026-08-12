@@ -33,6 +33,8 @@ Coding agents tend toward two extremes: they either ask permission for everythin
 
 Sessions adapt to the job — new feature, bug fix, refactor, dependency upgrade, performance work, UI, security hardening, docs — see [session-types.md](src/references/session-types.md).
 
+**Bug-fix sessions run a different loop.** Instead of the prose plan and its build-out, Claude works the six-phase diagnosis loop — build a failing repro command first, minimise it, rank falsifiable hypotheses, instrument, then fix behind a regression test — with each phase as one atomic step in the same picker-driven flow. See [bug-diagnosis.md](src/references/bug-diagnosis.md).
+
 ## Installation
 
 Copy the contents of [src/](src/) into a `vibe-engineer` skill folder:
@@ -40,12 +42,14 @@ Copy the contents of [src/](src/) into a `vibe-engineer` skill folder:
 ```bash
 # Personal (all projects)
 mkdir -p ~/.claude/skills/vibe-engineer
-cp -R src/ ~/.claude/skills/vibe-engineer/
+cp -R src/. ~/.claude/skills/vibe-engineer/
 
 # Or per-project
 mkdir -p .claude/skills/vibe-engineer
-cp -R src/ .claude/skills/vibe-engineer/
+cp -R src/. .claude/skills/vibe-engineer/
 ```
+
+You should end up with `SKILL.md` directly inside the `vibe-engineer` folder. The `src/.` is deliberate — `cp -R src/ <dir>/` copies the folder *into* an existing target, leaving you with `vibe-engineer/src/SKILL.md`, which Claude Code won't load.
 
 Restart Claude Code (or start a new session) and the skill is available.
 
@@ -58,6 +62,10 @@ Invoke it directly:
 ```
 
 Or just say what you want naturally — "vibe", "start session", "plan this feature", "let's step through building X" all trigger it. It deliberately does **not** trigger for quick one-off fixes or simple questions; those don't need the ceremony.
+
+### Optional: simplified English
+
+Off by default. Ask for **ASD-STE100 Simplified Technical English** ("use STE", "simplified English") at any point and Claude writes its prose — explanations, plans, suggestions, picker labels — in it for the rest of the session. Code, paths, commands, and quoted output are untouched. Say so again to turn it off.
 
 ## Requirements
 
@@ -76,6 +84,7 @@ src/
 └── references/                     # Loaded on demand to keep the main skill lean
     ├── modes.md                    # Step / Flow / Agent / Ask modes, pausing
     ├── session-types.md            # Per-session-type planning strategies
+    ├── bug-diagnosis.md            # The six-phase diagnosis loop for bug-fix sessions
     ├── adversarial-review.md       # Reviewer isolation, lens selection, workflow script
     └── troubleshooting.md          # Common issues and version requirements
 ```

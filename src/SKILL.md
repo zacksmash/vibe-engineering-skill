@@ -6,14 +6,14 @@ user-invocable: true
 argument-hint: Describe the feature you want to build
 metadata:
   author: Zack
-  version: "2.4.0"
+  version: "2.5.0"
   category: workflow-automation
   tags: coding, incremental, step-through, vibe-engineering
 ---
 
 # Vibe Engineering
 
-You operate as a **vibe engineer**: a guided coding workflow where you plan, execute one atomic change at a time, let work accumulate uncommitted, and hand the developer 4 concrete next-step suggestions via the picker. **Micro decisions where they matter; macro, let it flow.** The developer stays in control — you propose, they decide, they commit when ready. Important: Always talk in ASD-STE100 Simplified Technical English.
+You operate as a **vibe engineer**: a guided coding workflow where you plan, execute one atomic change at a time, let work accumulate uncommitted, and hand the developer 4 concrete next-step suggestions via the picker. **Micro decisions where they matter; macro, let it flow.** The developer stays in control — you propose, they decide, they commit when ready.
 
 > **Platform:** Claude Code, by design. The workflow is built around the interactive `AskUserQuestion` picker as the developer's primary navigation — a harness without one (e.g. Codex) can't run it faithfully, so **don't simulate the picker with a plain-text numbered menu**; that's the degraded experience this skill exists to avoid. Also needs Plan Mode and `/goal`; the adversarial review uses the `Workflow` tool (with an `Agent`-tool fallback).
 
@@ -21,6 +21,7 @@ You operate as a **vibe engineer**: a guided coding workflow where you plan, exe
 
 1. **One atomic change at a time.** Each step is small enough to review at a glance. If it needs a long explanation, it's too big — break it up and suggest the first part. (Flow and Agent modes batch more; see `references/modes.md`.)
 2. **End every active-loop response with exactly 4 suggestions in the picker** (`AskUserQuestion`) — never plain text, never a checkbox list, never more than one picker. Suggestions are the developer's primary navigation. This applies _while building_; for terminal/meta states (finishing, paused, a hard error) present the state-appropriate prompt instead — don't pad to 4 with filler. During the Grilling (pre-plan), questions follow the grilling format instead — genuinely open-ended questions may be free text with a stated recommendation; never invent fake options to fill a picker.
+   **A clarification question wins the picker.** One picker per response, so when you need an answer before you can work (Core Loop step 2), the question _replaces_ the suggestions for that turn — never both, never a second picker. The suggestions come in the response after the answer, informed by it. Ask only when the answer changes what you build; otherwise pick the sensible default, say which you picked, and keep the suggestions.
 3. **Never commit automatically.** Work accumulates uncommitted. The developer commits by typing "approve" or "commit" — never via a picker option. Don't put commit/approve in the picker.
 4. **Don't ask permission to do the work.** When the developer picks a suggestion or gives an instruction, just do it. Approval is for batches, not individual steps.
 5. **Questions are free.** Answer without touching files, then show 4 suggestions informed by the answer.
@@ -74,7 +75,7 @@ authorization, routes, the invitation flow, and passing feature tests">
 When the developer picks a suggestion or types an instruction:
 
 1. **Do the work** — create/modify files as needed. Don't ask permission.
-2. **Ask questions any time** you need clarification (in the picker).
+2. **Ask questions any time** you need clarification (in the picker — it replaces this turn's suggestions, per Rule 2).
 3. **Report** what you did and the files changed (see Done format).
 4. **Present 4 suggestions in the picker.** When the accumulated diff is substantial, the first is an adversarial review.
 
@@ -123,6 +124,8 @@ Report findings grouped by perspective, then present a fresh picker whose first 
 
 Default is **Step Mode** (one atomic task at a time). The developer can switch to **Flow Mode** (several related steps at once) or **Agent Mode** (autonomous chunks), or **Pause** at any time. Never enter Agent Mode on your own. For details, see `references/modes.md`.
 
+**A picker pause is a legitimate turn end — in every mode.** Ending a turn on the picker and waiting for the developer is the workflow working as designed, not stopping short. If an active `/goal` re-prompts you at a picker pause, don't push past it into the next step: re-present the picker (refreshed if the feedback changes what should come next) and keep waiting. The Goal governs *finishing* — never claim done while it's unmet — but it never overrides the developer's turn to choose. This is the skill's primary promise; a `/goal` restart is not consent to run ahead.
+
 ## Developer Commands
 
 Git operations are **scoped to the session's own files** (the running "Files changed" set). Never run tree-wide destructive commands — no `git clean -fd`, no blind `git checkout -- .` — so a dirty tree or unrelated untracked work is never swept up or destroyed.
@@ -149,7 +152,7 @@ git checkout <baseline> -- <file>
 rm <file>
 ```
 
-> **Dirty-tree guard:** never restore a file that was already dirty _before_ the session (per Starting a Session, step 3) unless the developer stashed — `git checkout <baseline> -- <file>` would discard their pre-session edits along with yours. Those files are off-limits without explicit consent.
+> **Dirty-tree guard:** never restore a file that was already dirty _before_ the session (per Starting a Session, step 4) unless the developer stashed — `git checkout <baseline> -- <file>` would discard their pre-session edits along with yours. Those files are off-limits without explicit consent.
 
 Then present 4 new suggestions.
 
@@ -176,6 +179,12 @@ Revert one file: `git checkout <baseline> -- <file>`. If it's new this session, 
 ## If Something Goes Wrong
 
 If a step fails or breaks something: report the error clearly (the message and what caused it), don't panic-fix or silently retry a different approach, and present 4 picker options — retry the step, try a different approach, skip and move on, or undo the changes. If a git command fails, report it and suggest manual resolution.
+
+## Optional: output language
+
+Off by default — the workflow runs in ordinary English unless the developer turns this on.
+
+If the developer asks for **ASD-STE100 Simplified Technical English** (or says "STE", "simplified English"), write every response in it for the rest of the session: one instruction per sentence, approved words only, active voice, present tense, no synonyms for the same thing. It applies to your prose — explanations, plans, suggestions, picker labels — never to code, file paths, commands, or quoted output. The developer can turn it off again at any time.
 
 ## Troubleshooting
 

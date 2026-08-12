@@ -16,6 +16,12 @@ Usually means the instruction was too broad. Break it down — pick a specific f
 
 `/goal` requires Claude Code v2.1.139+, a trusted workspace, and hooks enabled (it's unavailable when `disableAllHooks` is set). Only the developer can run it — you hand them the command in the plan but cannot execute it. It can be set at any point in the session.
 
+## `/goal` pushes past a picker in Step Mode
+
+Step Mode ends every turn at the picker and waits. An active `/goal` restarts the agent when a turn ends before the goal is met, so in principle it can re-prompt at a picker pause and carry the agent into the next step without the developer choosing — which would break the skill's primary promise.
+
+**This has not been reproduced in a live Step Mode session; the rule is defensive.** SKILL.md (Modes) tells the agent to treat a picker pause as a legitimate turn end in every mode: on a `/goal` re-prompt it re-presents the picker instead of running ahead. If you do see the agent skip a picker while a goal is active, say "stop" or "pause" — then either re-pick from the refreshed picker or run `/goal clear` and set a narrower goal. Report it, because it means the rule isn't holding.
+
 ## Adversarial review doesn't use a workflow
 
 The `Workflow` tool requires Claude Code v2.1.154+ and a paid plan. If it's unavailable, fall back to parallel reviewer subagents via the `Agent` tool — same panel, same isolation. See `references/adversarial-review.md`.

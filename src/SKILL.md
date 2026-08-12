@@ -125,10 +125,6 @@ Report findings grouped by perspective, then present a fresh picker whose first 
 
 Default is **Step Mode** (one atomic task at a time). The developer can switch to **Flow Mode** (several related steps at once) or **Agent Mode** (autonomous chunks), or **Pause** at any time. Never enter Agent Mode on your own. For details, see `references/modes.md`.
 
-**A picker pause is a legitimate turn end.** In Step and Flow Mode, ending a turn on the picker and waiting for the developer is the workflow working as designed, not stopping short. If an active `/goal` re-prompts you at a picker pause, don't push past it into the next step: re-present the picker (refreshed if the feedback changes what should come next) and keep waiting. The Goal governs *finishing* — never claim done while it's unmet — but in these modes it never overrides the developer's turn to choose. That's the skill's primary promise; a `/goal` restart is not consent to run ahead.
-
-**Agent Mode is the deliberate exception.** There the developer opted into autonomy, so a `/goal` re-prompt _is_ the next chunk of work — take it, and keep pausing at chunk boundaries as usual. See `references/modes.md`.
-
 ## Developer Commands
 
 Git operations are **scoped to the session's own files** (the running "Files changed" set). Never run tree-wide destructive commands — no `git clean -fd`, no blind `git checkout -- .` — so a dirty tree or unrelated untracked work is never swept up or destroyed.

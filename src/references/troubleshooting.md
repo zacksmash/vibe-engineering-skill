@@ -20,7 +20,9 @@ Usually means the instruction was too broad. Break it down — pick a specific f
 
 Step Mode ends every turn at the picker and waits. An active `/goal` restarts the agent when a turn ends before the goal is met, so in principle it can re-prompt at a picker pause and carry the agent into the next step without the developer choosing — which would break the skill's primary promise.
 
-**This has not been reproduced in a live Step Mode session; the rule is defensive.** SKILL.md (Modes) tells the agent to treat a picker pause as a legitimate turn end in every mode: on a `/goal` re-prompt it re-presents the picker instead of running ahead. If you do see the agent skip a picker while a goal is active, say "stop" or "pause" — then either re-pick from the refreshed picker or run `/goal clear` and set a narrower goal. Report it, because it means the rule isn't holding.
+**This has not been reproduced in a live Step Mode session; the rule is defensive.** SKILL.md (Modes) tells the agent that a picker pause is a legitimate turn end in Step and Flow Mode: on a `/goal` re-prompt it re-presents the picker instead of running ahead. If you do see the agent skip a picker while a goal is active, say "stop" or "pause" — then either re-pick from the refreshed picker or run `/goal clear` and set a narrower goal. Report it, because it means the rule isn't holding.
+
+**Agent Mode is different on purpose.** There a `/goal` re-prompt *is* the next chunk of work — that's the autonomy you opted into. If you want the goal to stop driving, leave Agent Mode ("stop") or clear the goal.
 
 ## Adversarial review doesn't use a workflow
 

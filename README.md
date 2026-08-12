@@ -33,7 +33,7 @@ Coding agents tend toward two extremes: they either ask permission for everythin
 
 Sessions adapt to the job — new feature, bug fix, refactor, dependency upgrade, performance work, UI, security hardening, docs — see [session-types.md](src/references/session-types.md).
 
-**Bug-fix sessions run a different loop.** Instead of the prose plan and its build-out, Claude works the six-phase diagnosis loop — build a failing repro command first, minimise it, rank falsifiable hypotheses, instrument, then fix behind a regression test — with each phase as one atomic step in the same picker-driven flow. See [bug-diagnosis.md](src/references/bug-diagnosis.md).
+**Bug-fix sessions fill the same loop differently.** The grilling gets short and symptom-focused — what broke, what you expected, when it started, what changed — and the steps become the six diagnosis phases: build a command that goes red on *this* bug before touching any code, minimise the repro, rank falsifiable hypotheses in the picker, instrument, then fix behind a regression test. Same loop, same picker, different work. See [bug-diagnosis.md](src/references/bug-diagnosis.md).
 
 ## Installation
 

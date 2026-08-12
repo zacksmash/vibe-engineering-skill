@@ -14,7 +14,9 @@ The developer wants multiple tasks done at once. They might say:
 - "handle all the migration and model stuff"
 - "knock out the boilerplate"
 
-Execute all the requested tasks sequentially. Reconcile and validate each task at its natural boundary, stack everything into the uncommitted batch, and report the group together. Then present 4 suggestions in the UI picker. Don't stop between tasks unless something goes wrong.
+Execute all the requested tasks sequentially. Reconcile and validate each task at its natural boundary, stack everything into the uncommitted batch, and report the group together. Then present 4 suggestions in the UI picker. Do not stop between tasks unless validation fails, workspace state diverges, or a blocking decision prevents safe continuation.
+
+If a later task needs a blocking or hard-to-reverse decision, finish reconciling the current task, ask one decision question through `AskUserQuestion`, and wait. Do not edit the blocked task or the tasks after it. Resume only the remaining batch after the developer answers. For a reversible micro-decision, take the sensible default and report it instead of interrupting the batch.
 
 After Flow Mode completes, return to Step Mode.
 

@@ -34,6 +34,8 @@ Coding agents tend toward two extremes: they either ask permission for everythin
 
 Sessions adapt to the job — new feature, bug fix, refactor, dependency upgrade, performance work, UI, security hardening, docs — see [session-types.md](src/references/session-types.md).
 
+**Bug-fix sessions use the same loop with diagnostic steps.** The grilling is short and symptom-focused, then Claude builds a red-capable feedback loop, minimizes the reproduction, ranks falsifiable hypotheses in the picker, instruments, and fixes behind a regression test. Same atomic checkpoints, different work; see [bug-diagnosis.md](src/references/bug-diagnosis.md).
+
 ## Installation
 
 Copy the contents of [src/](src/) into a `vibe-engineer` skill folder:
@@ -61,6 +63,10 @@ Invoke it directly:
 ```
 
 Or just say what you want naturally — "vibe", "start session", "plan this feature", "let's step through building X" all trigger it. It deliberately does **not** trigger for quick one-off fixes or simple questions; those don't need the ceremony.
+
+### Optional: simplified English
+
+Ordinary English is the default. Ask for **ASD-STE100 Simplified Technical English** ("use STE" or "simplified English") and Claude applies it to prose, plans, suggestions, and picker labels for the rest of the session. Code, paths, commands, and quoted output stay unchanged. Ask to turn it off at any time.
 
 ## Requirements
 

@@ -20,6 +20,10 @@ Usually means the instruction was too broad. Break it down — pick a specific f
 
 The `Workflow` tool requires Claude Code v2.1.154+ and a supported paid or API/provider setup. On Pro, it must also be enabled in `/config`; organization policy can disable it. If unavailable, fall back to fresh parallel reviewer subagents through the `Agent` tool. See `references/adversarial-review.md`.
 
+## Adversarial review asks for workflow approval
+
+Expected when Claude Code requires approval for the dynamic workflow. Review the script and requested scope before approving it. If the developer declines or the workflow remains blocked, use the fresh `Agent`-tool fallback instead. Treat the runtime approval as a safety gate, not as the vibe picker or permission to change files.
+
 ## Safe branch setup is blocked
 
 The full Git workflow requires a repository with at least one commit. For a dirty tree, prefer a dedicated worktree, but verify its exact base: Claude Code can default new worktrees to the remote default branch rather than local `HEAD`. Worktrees also omit uncommitted files unless `.worktreeinclude` copies selected ignored files. If a worktree is unavailable, ask before stashing and include untracked files. See `references/session-safety.md`; never claim safe undo when no reliable baseline exists.
@@ -30,4 +34,4 @@ Workflow agents run in `acceptEdits`, even for a review. Stop, compare the repos
 
 ## Suggestions not appearing
 
-If a response lacks the 4 suggestions during the active loop, type "suggestions" or "what should I do next" to prompt the picker. This should be rare — the skill repeats the instruction in several places.
+If a completed active-loop step lacks the 4 suggestions, type "suggestions" or "what should I do next" to prompt the picker. One case is legitimate: a blocking clarification uses a decision picker in place of the suggestions until the developer answers. After the selected work is complete and validated, the normal 4-suggestion picker returns.

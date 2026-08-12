@@ -174,6 +174,10 @@ Treat a bare "done" as finish only when the context is unambiguous. Otherwise as
 
 If a step fails or breaks something, report the error clearly, including its message and likely cause. Do not silently switch approaches. Present state-appropriate recovery options, normally retry, use a specific alternative, skip, or undo. A hard error is a meta state and does not need filler options. If a Git command fails, preserve the working tree and report the exact state before proposing recovery.
 
+## Optional Output Language
+
+Use ordinary English by default. If the developer asks for **ASD-STE100 Simplified Technical English** ("use STE" or "simplified English"), apply it to prose, plans, suggestions, and picker labels for the rest of the session. Do not rewrite code, paths, commands, or quoted output. Return to ordinary English whenever the developer asks.
+
 ## Troubleshooting
 
 Common issues — skill not triggering, the picker rendering as plain text, steps too large, `/goal` and `Workflow` availability and version requirements, the workflow approval prompt — are covered in `references/troubleshooting.md`.

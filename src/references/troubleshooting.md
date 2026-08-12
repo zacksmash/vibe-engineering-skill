@@ -28,6 +28,10 @@ If you ever do see the agent skip a picker with a goal active, that's worth repo
 
 The `Workflow` tool requires Claude Code v2.1.154+ and a paid plan. If it's unavailable, fall back to parallel reviewer subagents via the `Agent` tool — same panel, same isolation. See `references/adversarial-review.md`.
 
+## The adversarial review asks for approval before it runs
+
+Expected on first use — the dynamic-workflows process prompts once per project. Choose "don't ask again for this workflow in this project" to suppress it on later runs. See `references/adversarial-review.md`.
+
 ## Suggestions not appearing
 
-If a response lacks the 4 suggestions during the active loop, type "suggestions" or "what should I do next" to prompt the picker. This should be rare — the skill repeats the instruction in several places.
+If a response lacks the 4 suggestions during the active loop, type "suggestions" or "what should I do next" to prompt the picker. This should be rare — the skill repeats the instruction in several places. One case is legitimate: an open-ended clarification question is allowed to take the turn's only picker (SKILL.md Rule 2, rung 3). Answer it and the suggestions come back next turn.

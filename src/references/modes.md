@@ -16,6 +16,8 @@ The developer wants multiple tasks done at once. They might say:
 
 Execute all the requested tasks sequentially. Stack everything into the uncommitted batch. Report on everything you did as a group. Then present 4 suggestions in the UI picker. Don't stop between tasks unless something goes wrong.
 
+If a task needs an answer you don't have, work down Rule 2's ladder rather than halting the batch: take the sensible default and note it in the report, or fold the choice into the end-of-batch suggestions. Stop mid-batch only when the answer is genuinely open-ended *and* the remaining tasks depend on it.
+
 After Flow Mode completes, return to Step Mode.
 
 ## Agent Mode

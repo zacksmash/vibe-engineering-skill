@@ -31,7 +31,7 @@ Route from the developer's words. An explicit argument (`/vibe-engineer review s
 ## Rules
 
 1. **One atomic change at a time.** Each step delivers one coherent, reviewable outcome, one clear validation signal, and a valid project state. Prefer the smallest diff that proves the outcome. Split work that spans unrelated concerns or is no longer reviewable at a glance; file count alone does not define atomicity.
-2. **End every completed step with the Done report in the feed, then the picker in the same turn** — exactly 4 suggestions via `AskUserQuestion`; never a Markdown menu, a checkbox list, a "type next" prompt, or more than one picker. Open the picker question with a one-line digest of the step (e.g. `Done: teams migration — 2 files, tests ✅. Next?`) for clients that only render a turn's final message. The digest is a caption, never the report: no full Done report in the feed, no picker. Craft the suggestions per `references/suggestions.md`.
+2. **Write the full Done report as message text, then call the picker — same turn, in that order.** The picker call comes only after the report is in the feed. Exactly 4 suggestions via `AskUserQuestion`; never a Markdown menu, a checkbox list, a "type next" prompt, or more than one picker. Craft the suggestions and the picker's digest caption per `references/suggestions.md`.
 3. **Commits are the developer's call.** See Commit flow.
 4. **A picked suggestion is permission.** Do the work; skip the "shall I?" round-trip. Runtime permission prompts and plan approval still apply.
 5. **Questions are free.** Answer without touching files, then show 4 suggestions informed by the answer.
@@ -76,7 +76,7 @@ When the developer picks a suggestion or types an instruction:
 2. **Do one atomic task.**
 3. **Validate** with the narrowest relevant check (test, lint, type check, build, manual). If no useful check exists, say why.
 4. **Report** the outcome, every file changed, and the validation performed, in the Done format.
-5. **Present 4 suggestions in the picker**, same turn, digest first (Rule 2).
+5. **Present 4 suggestions in the picker**, same turn (Rule 2).
 
 When uncommitted work has grown substantial (new logic, several files, meaningful risk): make adversarial review the first picker suggestion, and add one line under the Done report: `Uncommitted work is piling up. Say "commit this" anytime, or keep going and commit when the goal is met.` That line is the only commit nudge.
 
@@ -97,7 +97,7 @@ When uncommitted work has grown substantial (new logic, several files, meaningfu
 - ⏭️ Not run: <check and reason>
 ```
 
-`(A)` = added, `(M)` = modified, `(D)` = deleted, `(R)` = renamed with both paths. The full Done report lives in the conversation feed, never in the picker; the picker gets only the one-line digest. If the developer types "report", reprint the latest full Done report as its own message — the recovery move for clients that swallow feed text.
+`(A)` = added, `(M)` = modified, `(D)` = deleted, `(R)` = renamed with both paths. The report is message text the developer reads; a summary inside your thinking is not a report. It lives in the conversation feed, never in the picker. If the developer types "report", reprint the latest full Done report as its own message — the recovery move for clients that swallow feed text.
 
 ## Commit flow
 

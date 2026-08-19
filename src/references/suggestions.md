@@ -22,4 +22,6 @@ Craft every set from:
 
 ## Picker mechanics
 
+Open the suggestion picker's question with a one-line digest of the step just reported (`Done: teams migration — 2 files, tests ✅. Next?`) — a caption for clients that hide feed text, never a substitute for the Done report, which must already be in the feed (SKILL.md Rule 2).
+
 A blocking clarification uses one decision picker *before* work and replaces the suggestion picker until answered. Terminal states (finishing, pausing, a hard error) use their own state-appropriate prompt with only the real options; filler options are never invented anywhere.

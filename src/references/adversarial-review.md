@@ -1,42 +1,30 @@
-# Vibe Engineering — Adversarial Review
+# Adversarial review
 
-Offer this from the main loop when the accumulated diff is substantial (see SKILL.md → Adversarial Review for *when*). Prefer the `Workflow` tool so reviewers run in parallel, context-isolated from the coding conversation; use the fallback when Workflow is unavailable.
+Two entry points share one dispatch machine:
 
-## Why isolation matters
+- **In-loop lens review** — offered from the core loop when uncommitted work is substantial (the moment is defined in SKILL.md): is this batch sound?
+- **Standalone standards & spec review** — invoked directly ("review since main", "review this branch/PR"): does this change meet the contract?
 
-Each reviewer subagent is spawned fresh by the workflow runtime. It does **not** receive your reasoning, justifications, or session history. It receives only the review prompt, then grounds itself in the session diff, the full content of untracked session files, project instructions (`CLAUDE.md`/`AGENTS.md`), relevant domain or architecture docs, and the surrounding code one dependency hop out. Project context: yes. Coding-agent reasoning: never. A reviewer cannot rationalize a decision it never saw justified.
+## Dispatch (both entry points)
 
-Each reviewer is told to find what's *wrong* in its lens — no praise, no summaries — and returns concise findings (severity, `file:line`, one sentence each).
+Reviewers run as parallel sub-agents spawned fresh, so they never see the coding session's reasoning and cannot rationalize a decision they never saw justified. Prefer the **`Workflow` tool**; when it's unavailable (it needs a recent Claude Code and can be disabled), say so and use fresh `Agent` subagents with the same prompts.
 
-**Read-only is an audited invariant, not a permission guarantee.** Workflow subagents always run in `acceptEdits`, so record the complete repository status and an exact recoverable pre-review state before dispatch. Reconcile the entire repository after the run, including paths outside the session file set. If any reviewer changed a file, stop: parallel results may describe different states. Isolate and reverse only the reviewer-owned patch when that is provably safe, re-run the affected validation, discard every finding from the contaminated run, and rerun the review. If the patch overlaps legitimate or concurrent work, do not restore a whole file; show the overlap and ask the developer.
+Each reviewer grounds itself in: the diff from the fixed point, the full content of untracked changed files (`git diff` omits them), project instructions (`CLAUDE.md`/`AGENTS.md`), and the code one dependency hop around each change. Each hunts what is *wrong* through its lens only — no praise, no summaries — and returns findings as severity, `file:line`, one sentence.
 
-## Choosing the perspectives
+Reviewers are read-only; verify a clean `git status` after the run before trusting the results.
 
-Don't run a fixed panel. Before dispatching, read what actually changed and pick the lenses that will surface the most real problems in *this* code. Workflow reviews can use meaningful tokens, so spend them where the risk is, not on a checklist.
+### Workflow script
 
-Read the signal:
-
-- **What changed** — auth, input handling, or anything touching untrusted data pulls in **security**; query-, loop-, or render-heavy code pulls in **performance**; a public API, shared module, or schema change pulls in **interface / compatibility / data integrity**.
-- **Language & stack** — match the lens to the idioms in use: memory safety and lifetimes (Rust/C/C++), concurrency and data races (Go, threaded code), type safety and null handling (TypeScript), framework conventions (Eloquent relationships, form requests, policies for Laravel; hooks/composition for React).
-- **Task stage** — early scaffolding favors architecture and conventions over polish; a maturing feature favors correctness, edge cases, and error handling; pre-ship favors security, performance, tests, and accessibility.
-
-A palette to draw from (pick what fits, invent others the diff suggests): security, performance, language/framework conventions, correctness & logic, code quality & edge cases, concurrency, API / interface design, data integrity, accessibility, error handling, test coverage.
-
-Pick 2 for a narrow but substantial diff and 3–4 when it spans concerns. State each lens's focus precisely so the reviewer hunts the specific failure modes in this diff instead of reciting generic advice.
-
-## Workflow script
-
-Adapt the prompt details; keep the shape.
+Adapt the prompt details; keep the shape. Pass the project path, the fixed point, the changed-file list, and the chosen perspectives via `args`.
 
 ```js
 export const meta = {
   name: 'vibe-adversarial-review',
-  description: 'Adversarial review of vibe session changes',
+  description: 'Adversarial review of session changes',
   phases: [{ title: 'Review' }],
 }
 const FINDINGS = {
-  type: 'object', required: ['findings'],
-  additionalProperties: false,
+  type: 'object', required: ['findings'], additionalProperties: false,
   properties: { findings: { type: 'array', items: {
     type: 'object', required: ['severity', 'location', 'issue'],
     additionalProperties: false,
@@ -45,17 +33,14 @@ const FINDINGS = {
 }
 phase('Review')
 const results = await parallel(args.perspectives.map(p => () =>
-  agent(`Adversarial ${p.name} review of the session changes in ${args.cwd}.
-This is a read-only review. Do not edit files or run state-changing commands.
-The session baseline is ${args.baseline}. The complete session file list is:
-${JSON.stringify(args.sessionFiles)}
-Run "git status --short". Compare tracked session files with the baseline and
-read the full content of every untracked session file; git diff omits them.
-Use Git's --literal-pathspecs plus "--" and review only the supplied file list.
-Ground yourself in CLAUDE.md/AGENTS.md if present, relevant docs, and the code
-one dependency hop around each change. Find what is WRONG through the ${p.name}
-lens only: ${p.focus}. No praise or summaries. Return concise findings with
-severity and file:line.`,
+  agent(`Adversarial ${p.name} review of the changes in ${args.cwd}.
+This is a read-only review; do not edit files or run state-changing commands.
+The fixed point is ${args.baseline}. The changed files are:
+${JSON.stringify(args.files)}
+Diff tracked files against the fixed point and read untracked ones in full.
+Ground yourself in CLAUDE.md/AGENTS.md if present and the code one dependency
+hop around each change. Find what is WRONG through the ${p.name} lens only:
+${p.focus}. No praise or summaries. Return findings with severity and file:line.`,
     { label: `review:${p.key}`, schema: FINDINGS })))
 return args.perspectives.map((p, i) => ({
   perspective: p.name,
@@ -64,20 +49,26 @@ return args.perspectives.map((p, i) => ({
 }))
 ```
 
-Invoke with `args` carrying the absolute project path, session baseline, verified session file set, and the perspectives chosen for this diff. These perspectives are illustrative:
+A null reviewer result is a failed perspective, not an empty review; report or rerun it.
 
-```js
-{ cwd: "/path/to/app", baseline: "<full-commit-sha>",
-  sessionFiles: ["app/Team.php", "tests/TeamTest.php"], perspectives: [
-  { key: "security",    name: "security",             focus: "..." },
-  { key: "performance", name: "performance",          focus: "..." },
-  { key: "conventions", name: "framework conventions", focus: "..." } ] }
-```
+## In-loop lens review
 
-When the review finishes, reconcile the workspace before reading findings. A failed/null reviewer result is a failed perspective, not an empty review; report or rerun it. Verify and deduplicate completed findings against the unchanged code. Report valid findings grouped by perspective and mark anything you could not verify. Then present a fresh picker whose first suggestion(s) turn the highest-severity findings into work. After substantial fixes, you may offer the review again.
+Pick the 2–4 lenses that will surface the most real problems in *this* diff — never a fixed panel. Read the signal:
 
-## Fallback
+- **What changed** — auth or input handling pulls in security; query-, loop-, or render-heavy code pulls in performance; a public API, shared module, or schema change pulls in interface/compatibility/data integrity.
+- **Language & stack** — match the lens to the idioms in use: concurrency for Go or threaded code, type and null safety for TypeScript, framework conventions for the framework at hand.
+- **Task stage** — early scaffolding favors architecture and conventions; a maturing feature favors correctness and edge cases; pre-ship favors security, performance, tests, accessibility.
 
-The `Workflow` tool requires Claude Code v2.1.154+ and a supported paid or API/provider setup. It can also be disabled in configuration or managed settings. If unavailable, say so and fall back to parallel reviewer subagents through the `Agent` tool. Spawn every reviewer fresh with only the read-only review prompt and grounding instructions. Apply the same pre/post mutation audit to the fallback.
+Palette to draw from (invent others the diff suggests): security, performance, framework conventions, correctness, edge cases, concurrency, API design, data integrity, accessibility, error handling, test coverage, UX. State each lens's focus precisely so the reviewer hunts this diff's failure modes, not generic advice.
 
-> Workflow approval depends on permission mode. Default and accept-edits modes prompt on each run unless the developer granted persistent project consent. Auto mode normally prompts on the first launch. Bypass-permissions and non-interactive runs do not show the launch prompt.
+Afterward: verify and deduplicate findings against the code, report the valid ones grouped by lens with anything unverified marked, then present a fresh picker whose first suggestion(s) turn the highest-severity findings into work.
+
+## Standalone standards & spec review
+
+Two fixed axes, reported side by side. A change can pass one and fail the other — code that follows every standard but implements the wrong thing, or code that does what the issue asked while breaking conventions — so the axes are never merged or reranked into a single verdict.
+
+1. **Pin the fixed point.** Whatever the developer names (SHA, branch, tag, `main`, `HEAD~5`). Confirm it resolves (`git rev-parse`), capture `git diff <point>...HEAD` (three-dot, against the merge-base) and `git log <point>..HEAD --oneline`. A bad ref or empty diff fails here, not inside the sub-agents.
+2. **Find the spec**: issue references in the commit messages, a path the developer passed, or a spec file under `docs/`/`specs/` matching the branch. If none exists, the Spec axis reports "no spec available" instead of running.
+3. **Find the standards**: whatever documents how code should be written here (`CONTRIBUTING.md`, `CODING_STANDARDS.md`, `CLAUDE.md`). On top, the Standards reviewer carries a smell baseline — Fowler's classics (mysterious name, duplicated code, feature envy, data clumps, primitive obsession, repeated switches, shotgun surgery, divergent change, speculative generality, message chains, middle man) — pasted into its prompt, each flagged as a judgement call. A documented repo standard overrides the baseline; skip anything tooling already enforces.
+4. **Dispatch both axes in parallel** through the machine above. Standards reports documented-standard violations (cite the rule) and baseline smells (name it, quote the hunk). Spec reports missing or partial requirements, scope creep, and requirements implemented wrong, quoting the spec line for each.
+5. **Report** under `## Standards` and `## Spec` headings, with a one-line total per axis and the worst finding within each. Inside a vibe session, follow with a picker that turns the top findings into work; invoked standalone, the report is the deliverable.
